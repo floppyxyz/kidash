@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/toast";
 
 export function AddCategoryButton() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -28,10 +30,12 @@ export function AddCategoryButton() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Failed to create category");
+        showToast(data.error ?? "Failed to create category", "error");
         setSaving(false);
         return;
       }
 
+      showToast("Category created", "success");
       setName("");
       setAdding(false);
       router.refresh();
@@ -45,8 +49,12 @@ export function AddCategoryButton() {
   if (!adding) {
     return (
       <button
+        id="add-category-btn"
         onClick={() => setAdding(true)}
-        className="rounded-lg border border-dashed border-zinc-700 px-3 py-1.5 text-sm text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200"
+        className="rounded-lg border border-dashed px-3 py-1.5 text-sm transition"
+        style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-hover)"; e.currentTarget.style.color = "var(--foreground)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--muted)"; }}
       >
         + Category
       </button>
@@ -63,16 +71,22 @@ export function AddCategoryButton() {
         onBlur={() => {
           if (!name.trim()) setAdding(false);
         }}
-        className="w-40 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+        className="w-40 rounded-lg border px-3 py-1.5 text-sm focus:outline-none"
+        style={{
+          borderColor: "var(--border)",
+          background: "var(--card)",
+          color: "var(--foreground)",
+        }}
       />
       <button
         type="submit"
         disabled={saving || !name.trim()}
-        className="rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-white disabled:opacity-50"
+        className="rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:opacity-50"
+        style={{ background: "var(--foreground)", color: "var(--background)" }}
       >
         {saving ? "..." : "Add"}
       </button>
-      {error && <span className="text-sm text-red-400">{error}</span>}
+      {error && <span className="text-sm text-red-500">{error}</span>}
     </form>
   );
 }

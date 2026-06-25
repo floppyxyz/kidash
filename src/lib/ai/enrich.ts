@@ -1,28 +1,34 @@
 import { getOpenAIClient, getModel } from "@/lib/openai";
-import { getHostname } from "@/lib/url";
+import { prisma } from "@/lib/db";
 
 export type EnrichedData = {
   title: string;
   description: string | null;
   categorySlug: string;
   categoryName: string;
+  categoryIsNew: boolean;
   color: string | null;
 };
 
 const SYSTEM_PROMPT = `You are a dashboard categorizer for selfhosted services.
 Analyze the given URL, title, and description of a web service.
+
+You will receive a list of EXISTING categories. Your job:
+1. If an existing category fits reasonably well, reuse it (return its slug + name).
+2. Only create a NEW category if none of the existing ones fit at all.
+3. Be generous: "media" fits for streaming, video, music, photos. "network" fits for routers, DNS, firewalls. "automation" fits for home automation, smart home.
+4. Do not create hyper-specific categories like "plex" or "nextcloud" — use the broader existing one.
+
 Return ONLY valid JSON with this exact structure:
 {
   "title": "Short, clean service name (max 40 chars)",
   "description": "One sentence description (max 100 chars)",
-  "categorySlug": "lowercase-single-word-slug",
-  "categoryName": "Human readable category name",
+  "categorySlug": "the slug you chose",
+  "categoryName": "human readable name",
+  "categoryIsNew": true or false,
   "color": "hex color without #, e.g. 0082C9"
 }
 
-Common categories: media, network, automation, storage, monitoring, development, home, security, productivity, download, other
-
-If the URL is just an IP or hostname without recognizable service, derive the category from the port or hostname.
 Return the raw JSON only, no markdown, no explanation.`;
 
 export async function enrichEntry(
@@ -33,12 +39,22 @@ export async function enrichEntry(
   const client = getOpenAIClient();
   if (!client) return null;
 
-  const hostname = getHostname(url);
+  const existingCategories = await prisma.category.findMany({
+    select: { slug: true, name: true },
+    orderBy: { name: "asc" },
+  });
 
-  const userPrompt = `URL: ${url}
-Hostname: ${hostname}
-${fetchedTitle ? `Page title: ${fetchedTitle}` : "Page title: (not available)"}
-${fetchedDescription ? `Description: ${fetchedDescription}` : "Description: (not available)"}`;
+  const categoriesList = existingCategories.length > 0
+    ? existingCategories.map((c) => `- ${c.slug} (${c.name})`).join("\n")
+    : "(none yet)";
+
+  const userPrompt = `${fetchedTitle ? `Page title: ${fetchedTitle}` : "Page title: (not available)"}
+${fetchedDescription ? `Description: ${fetchedDescription}` : "Description: (not available)"}
+
+EXISTING CATEGORIES:
+${categoriesList}
+
+Choose an existing category if one fits reasonably well. Only create a new one if nothing fits.`;
 
   try {
     const response = await client.chat.completions.create({
@@ -58,10 +74,11 @@ ${fetchedDescription ? `Description: ${fetchedDescription}` : "Description: (not
     const parsed = JSON.parse(content);
 
     return {
-      title: parsed.title ?? fetchedTitle ?? hostname,
+      title: parsed.title ?? fetchedTitle ?? "Unknown Service",
       description: parsed.description ?? fetchedDescription,
       categorySlug: sanitizeSlug(parsed.categorySlug ?? "other"),
       categoryName: parsed.categoryName ?? parsed.categorySlug ?? "Other",
+      categoryIsNew: parsed.categoryIsNew === true,
       color: parsed.color ?? null,
     };
   } catch (error) {

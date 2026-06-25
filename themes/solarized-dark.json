@@ -1,0 +1,30 @@
+{
+  "name": "Solarized Dark",
+  "colors": {
+    "--background": "#002b36",
+    "--foreground": "#93a1a1",
+    "--card": "#073642",
+    "--card-hover": "#0d4350",
+    "--border": "#586e75",
+    "--border-hover": "#839496",
+    "--muted": "#586e75",
+    "--accent": "#268bd2"
+  },
+  "fonts": {
+    "--font-sans": "Source Sans 3, system-ui, sans-serif",
+    "--font-mono": "Source Code Pro, ui-monospace, monospace",
+    "--font-size-base": "15px",
+    "--font-size-sm": "13px",
+    "--font-size-lg": "19px"
+  },
+  "radius": {
+    "--radius-sm": "3px",
+    "--radius-md": "6px",
+    "--radius-lg": "10px"
+  },
+  "spacing": {
+    "--card-padding": "16px",
+    "--card-gap": "8px"
+  },
+  "customCss": ""
+}

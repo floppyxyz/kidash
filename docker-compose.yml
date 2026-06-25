@@ -2,9 +2,10 @@ services:
   kidash:
     build: .
     ports:
-      - "3000:3000"
+      - "3100:3000"
     volumes:
       - kidash-data:/data
+      - ./themes:/app/themes:ro
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - AUTH_TOKEN=${AUTH_TOKEN}

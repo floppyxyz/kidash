@@ -1,5 +1,4 @@
 import { getOpenAIClient, getModel } from "@/lib/openai";
-import { getHostname } from "@/lib/url";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -20,19 +19,16 @@ Rules:
 - Max 2KB SVG size`;
 
 export async function resolveAiIcon(
-  url: string,
   title: string | null,
   description: string | null
 ): Promise<AiIconResult> {
   const client = getOpenAIClient();
   if (!client) return null;
 
-  const hostname = getHostname(url);
-  const serviceName = title ?? hostname;
+  const serviceName = title ?? "Unknown Service";
 
   const userPrompt = `Generate a simple icon for this service:
 Name: ${serviceName}
-URL: ${url}
 ${description ? `Description: ${description}` : ""}
 
 Return only the SVG.`;

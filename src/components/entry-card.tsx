@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { EntryIcon } from "@/components/entry-icon";
 import { EditModal } from "@/components/edit-modal";
+import { useToast } from "@/components/toast";
+import { useViewMode } from "@/components/view-mode";
 
 type EntryCardProps = {
   entry: {
@@ -15,88 +16,136 @@ type EntryCardProps = {
     description: string | null;
     iconUrl: string | null;
     iconType: string | null;
+    status: string | null;
+    statusCheckedAt: Date | null;
     category: { name: string; slug: string } | null;
   };
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 };
 
-export function EntryCard({ entry }: EntryCardProps) {
+function statusColor(status: string | null): string {
+  if (status === "up") return "#22c55e";
+  if (status === "down") return "#ef4444";
+  return "#71717a";
+}
+
+export function EntryCard({ entry, onMoveUp, onMoveDown }: EntryCardProps) {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { mode } = useViewMode();
+  const compact = mode === "compact";
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const {
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-    attributes,
-    listeners,
-  } = useSortable({ id: entry.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
-    borderColor: isDragging ? "var(--color-zinc-500)" : undefined,
-  };
-
   async function handleDelete() {
-    await fetch(`/api/entries/${entry.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/entries/${entry.id}`, { method: "DELETE" });
+    if (res.ok) {
+      showToast("Entry deleted", "success");
+    } else {
+      showToast("Failed to delete entry", "error");
+    }
     router.refresh();
   }
 
   return (
     <>
       <div
-        ref={setNodeRef}
-        style={style}
-        className={`group relative flex flex-col gap-2 rounded-xl border p-4 transition touch-none ${
-          isDragging
-            ? "border-zinc-500 bg-zinc-800 shadow-lg shadow-black/50"
-            : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900"
-        }`}
+        className={`group relative border transition ${compact ? "flex items-center gap-2 p-2" : "flex flex-col gap-2 p-4"}`}
+        style={{
+          borderRadius: "var(--radius-lg)",
+          borderColor: "var(--border)",
+          background: "var(--card)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "var(--border-hover)";
+          e.currentTarget.style.background = "var(--card-hover)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "var(--border)";
+          e.currentTarget.style.background = "var(--card)";
+        }}
       >
-        <div
-          className="absolute left-0.5 top-1/2 z-10 -translate-y-1/2 cursor-grab rounded p-1 text-zinc-600 opacity-0 transition hover:bg-zinc-800 hover:text-zinc-300 group-hover:opacity-100 active:cursor-grabbing"
-          {...attributes}
-          {...listeners}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="9" cy="5" r="1.5" />
-            <circle cx="15" cy="5" r="1.5" />
-            <circle cx="9" cy="12" r="1.5" />
-            <circle cx="15" cy="12" r="1.5" />
-            <circle cx="9" cy="19" r="1.5" />
-            <circle cx="15" cy="19" r="1.5" />
-          </svg>
-        </div>
-
         <a
           href={entry.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col gap-2"
+          className={compact ? "flex min-w-0 items-center gap-2" : "flex flex-col gap-2"}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-800">
-              <EntryIcon iconUrl={entry.iconUrl} title={entry.title} />
-            </div>
-            <h3 className="truncate font-medium text-zinc-100">{entry.title}</h3>
+          <div
+            className={`relative flex shrink-0 items-center justify-center overflow-hidden ${compact ? "h-6 w-6" : "h-10 w-10"}`}
+            style={{ borderRadius: "var(--radius-md)", background: "var(--card-hover)" }}
+          >
+            <EntryIcon iconUrl={entry.iconUrl} title={entry.title} />
+            <span
+              className="absolute bottom-0 right-0 rounded-full border-2"
+              style={{
+                width: compact ? "6px" : "10px",
+                height: compact ? "6px" : "10px",
+                background: statusColor(entry.status),
+                borderColor: "var(--card)",
+              }}
+              title={entry.status ? `Status: ${entry.status}` : "Status: unknown"}
+            />
           </div>
-          <p className="line-clamp-2 min-h-[2.5rem] text-sm text-zinc-400">
-            {entry.description ?? ""}
-          </p>
-          <p className="truncate text-xs text-zinc-600">{entry.url.replace(/^https?:\/\//, "")}</p>
+          <h3 className="truncate font-medium" style={{ color: "var(--foreground)" }}>{entry.title}</h3>
+          {!compact && (
+            <>
+              <p className="line-clamp-2 min-h-[2.5rem] text-sm" style={{ color: "var(--muted)" }}>
+                {entry.description ?? ""}
+              </p>
+              <p className="truncate text-xs" style={{ color: "var(--muted)", opacity: 0.7 }}>{entry.url.replace(/^https?:\/\//, "")}</p>
+            </>
+          )}
         </a>
 
         <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
+          {onMoveUp && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onMoveUp();
+              }}
+              className="rounded-md p-1.5 transition"
+              style={{ background: "var(--card-hover)", color: "var(--muted)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--foreground)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
+              title="Move up"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+            </button>
+          )}
+          {onMoveDown && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onMoveDown();
+              }}
+              className="rounded-md p-1.5 transition"
+              style={{ background: "var(--card-hover)", color: "var(--muted)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--foreground)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
+              title="Move down"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setEditing(true);
             }}
-            className="rounded-md bg-zinc-800 p-1.5 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+            className="rounded-md p-1.5 transition"
+            style={{ background: "var(--card-hover)", color: "var(--muted)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--foreground)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
             title="Edit"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -110,7 +159,10 @@ export function EntryCard({ entry }: EntryCardProps) {
               e.stopPropagation();
               setConfirmDelete(true);
             }}
-            className="rounded-md bg-zinc-800 p-1.5 text-zinc-400 hover:bg-red-900 hover:text-red-300"
+            className="rounded-md p-1.5 transition"
+            style={{ background: "var(--card-hover)", color: "var(--muted)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
             title="Delete"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -131,20 +183,26 @@ export function EntryCard({ entry }: EntryCardProps) {
         />
       )}
 
-      {confirmDelete && (
+      {confirmDelete && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
           onClick={() => setConfirmDelete(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-zinc-700 bg-zinc-900 p-6 text-center"
+            className="w-full max-w-sm p-6 text-center"
+            style={{
+              borderRadius: "var(--radius-lg)",
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="mb-4 text-zinc-200">Delete &ldquo;{entry.title}&rdquo;?</p>
+            <p className="mb-4" style={{ color: "var(--foreground)" }}>Delete &ldquo;{entry.title}&rdquo;?</p>
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="rounded-lg border border-zinc-700 px-4 py-2 text-zinc-300 hover:bg-zinc-800"
+                className="rounded-lg border px-4 py-2 transition"
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
               >
                 Cancel
               </button>
@@ -159,7 +217,8 @@ export function EntryCard({ entry }: EntryCardProps) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

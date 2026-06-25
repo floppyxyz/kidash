@@ -12,7 +12,7 @@ export function EntryIcon({ iconUrl, title }: EntryIconProps) {
 
   if (!iconUrl || errored || iconUrl === "data:,") {
     return (
-      <span className="text-sm font-bold text-zinc-400">
+      <span className="text-sm font-bold" style={{ color: "var(--muted)" }}>
         {title.charAt(0).toUpperCase()}
       </span>
     );

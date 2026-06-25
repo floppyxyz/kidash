@@ -33,3 +33,57 @@ npm run dev
 | `AUTH_TOKEN`       | yes      | -                    | Bearer token for write operations    |
 | `OPENAI_MODEL`     | no       | `gpt-4o-mini`        | OpenAI model to use                  |
 | `DATABASE_URL`     | no       | `file:/data/kidash.db`| SQLite database URL (`file:` prefix) |
+
+## Themes
+
+kidash supports custom themes. Themes are JSON files in the `themes/` directory.
+
+### Built-in Themes
+
+- Midnight (default dark)
+- Nord
+- Dracula
+- Solarized Dark
+- Gruvbox
+- Light
+
+### Adding Custom Themes
+
+1. Create a JSON file in the `themes/` directory:
+
+```json
+{
+  "name": "My Theme",
+  "colors": {
+    "--background": "#1a1b26",
+    "--foreground": "#c0caf5",
+    "--card": "#24283b",
+    "--card-hover": "#2e334d",
+    "--border": "#2e334d",
+    "--border-hover": "#414868",
+    "--muted": "#565f89",
+    "--accent": "#7aa2f7"
+  }
+}
+```
+
+2. Restart kidash — the theme appears automatically in the theme selector (bottom-left corner).
+
+### Docker
+
+The `themes/` directory is mounted read-only from your host. To add themes:
+
+```bash
+# Place your theme files in ./themes/
+echo '{ "name": "Custom", "colors": { ... } }' > ./themes/custom.json
+
+# Restart
+docker compose restart
+```
+
+Or mount a custom directory:
+
+```yaml
+volumes:
+  - /path/to/my/themes:/app/themes:ro
+```

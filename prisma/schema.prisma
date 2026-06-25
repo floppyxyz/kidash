@@ -7,14 +7,19 @@ datasource db {
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  order     Int      @default(0)
-  color     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  entries   Entry[]
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  order       Int      @default(0)
+  color       String?
+  layoutX     Int      @default(0)
+  layoutY     Int      @default(0)
+  layoutW     Int      @default(6)
+  layoutH     Int      @default(4)
+  isPrivate   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  entries     Entry[]
 
   @@map("categories")
 }
@@ -29,6 +34,8 @@ model Entry {
   iconType    String?
   color       String?
   order       Int      @default(0)
+  status      String?  @default("unknown")
+  statusCheckedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

@@ -1,0 +1,30 @@
+{
+  "name": "Midnight",
+  "colors": {
+    "--background": "#09090b",
+    "--foreground": "#ededed",
+    "--card": "#18181b",
+    "--card-hover": "#27272a",
+    "--border": "#27272a",
+    "--border-hover": "#3f3f46",
+    "--muted": "#71717a",
+    "--accent": "#a1a1aa"
+  },
+  "fonts": {
+    "--font-sans": "Geist, system-ui, -apple-system, sans-serif",
+    "--font-mono": "Geist Mono, ui-monospace, monospace",
+    "--font-size-base": "14px",
+    "--font-size-sm": "12px",
+    "--font-size-lg": "18px"
+  },
+  "radius": {
+    "--radius-sm": "4px",
+    "--radius-md": "8px",
+    "--radius-lg": "12px"
+  },
+  "spacing": {
+    "--card-padding": "16px",
+    "--card-gap": "8px"
+  },
+  "customCss": ""
+}

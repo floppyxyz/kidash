@@ -1,0 +1,30 @@
+{
+  "name": "Terminal",
+  "colors": {
+    "--background": "#0c0c0c",
+    "--foreground": "#00ff41",
+    "--card": "#1a1a1a",
+    "--card-hover": "#222222",
+    "--border": "#333333",
+    "--border-hover": "#00ff41",
+    "--muted": "#4a7c4a",
+    "--accent": "#00ff41"
+  },
+  "fonts": {
+    "--font-sans": "Courier New, Courier, ui-monospace, monospace",
+    "--font-mono": "Courier New, Courier, ui-monospace, monospace",
+    "--font-size-base": "14px",
+    "--font-size-sm": "12px",
+    "--font-size-lg": "18px"
+  },
+  "radius": {
+    "--radius-sm": "0px",
+    "--radius-md": "0px",
+    "--radius-lg": "0px"
+  },
+  "spacing": {
+    "--card-padding": "12px",
+    "--card-gap": "8px"
+  },
+  "customCss": "/* Terminal theme: CRT scanlines + glow */\nbody {\n  text-shadow: 0 0 2px currentColor;\n}\n\n/* Scanline overlay */\nbody::before {\n  content: \"\";\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  pointer-events: none;\n  z-index: 9998;\n  background: repeating-linear-gradient(\n    0deg,\n    rgba(0, 0, 0, 0) 0px,\n    rgba(0, 0, 0, 0) 2px,\n    rgba(0, 0, 0, 0.15) 3px,\n    rgba(0, 0, 0, 0.15) 4px\n  );\n}\n\n/* Flicker effect */\n@keyframes flicker {\n  0%, 100% { opacity: 1; }\n  98% { opacity: 1; }\n  99% { opacity: 0.85; }\n}\n\nbody {\n  animation: flicker 6s infinite;\n}\n\n/* Pixelated rendering for images */\nimg {\n  image-rendering: pixelated;\n}\n"
+}

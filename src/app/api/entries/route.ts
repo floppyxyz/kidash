@@ -84,5 +84,7 @@ export async function POST(request: Request) {
     include: { category: true },
   });
 
-  return NextResponse.json({ entry }, { status: 201 });
+  const needsEditing = !metadata?.title && !metadata?.description;
+
+  return NextResponse.json({ entry, needsEditing }, { status: 201 });
 }

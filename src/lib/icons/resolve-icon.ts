@@ -21,7 +21,6 @@ export async function resolveIcon(
   if (libraryResult) return libraryResult;
 
   const aiResult = await resolveAiIcon(
-    url,
     enrichedTitle ?? metadata?.title ?? null,
     enrichedDescription ?? metadata?.description ?? null
   );
