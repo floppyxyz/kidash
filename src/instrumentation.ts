@@ -13,7 +13,7 @@ export async function register() {
     );
   }
 
-  if (process.env.NODE_ENV === "production" || process.env.ENABLE_HEALTH_PINGER === "true") {
+  if (process.env.ENABLE_HEALTH_PINGER === "true") {
     const { startHealthPinger } = await import("@/lib/health");
     startHealthPinger();
   }

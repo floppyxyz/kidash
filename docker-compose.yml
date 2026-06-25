@@ -11,6 +11,10 @@ services:
       - AUTH_TOKEN=${AUTH_TOKEN}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
       - DATABASE_URL=file:/data/kidash.db
+      # Optional: Google favicon fallback (default: off, sends hostnames to Google)
+      # - ALLOW_GOOGLE_FAVICONS=${ALLOW_GOOGLE_FAVICONS:-false}
+      # Optional: Background health pinger (default: off, server pings your URLs every 5min)
+      # - ENABLE_HEALTH_PINGER=${ENABLE_HEALTH_PINGER:-false}
     restart: unless-stopped
 
 volumes:

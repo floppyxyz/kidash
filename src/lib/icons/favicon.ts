@@ -29,9 +29,11 @@ export async function resolveFavicon(
     }
   }
 
-  const googleFavicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
-  if (await isUrlReachable(googleFavicon)) {
-    return { iconUrl: googleFavicon, iconType: "favicon" };
+  if (process.env.ALLOW_GOOGLE_FAVICONS === "true") {
+    const googleFavicon = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
+    if (await isUrlReachable(googleFavicon)) {
+      return { iconUrl: googleFavicon, iconType: "favicon" };
+    }
   }
 
   return null;
