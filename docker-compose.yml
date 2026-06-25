@@ -1,0 +1,16 @@
+services:
+  kidash:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - kidash-data:/data
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - DATABASE_URL=file:/data/kidash.db
+    restart: unless-stopped
+
+volumes:
+  kidash-data:

@@ -23,6 +23,12 @@
 # misc
 .DS_Store
 *.pem
+*.db
+*.db-journal
+
+# generated icons (created at runtime)
+/public/icons/library/
+/public/icons/ai/
 
 # debug
 npm-debug.log*
@@ -32,6 +38,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
