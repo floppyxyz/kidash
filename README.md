@@ -44,6 +44,27 @@ Open `http://localhost:3100` and log in with your `AUTH_TOKEN`.
 | `ALLOW_GOOGLE_FAVICONS` | no | `false` | Enable Google favicon fallback (sends hostnames to Google) |
 | `ENABLE_HEALTH_PINGER` | no | `false` | Enable background health checks (server pings your URLs every 5 min) |
 
+### Generating an AUTH_TOKEN
+
+The `AUTH_TOKEN` is just a random secret used to log in and authorize write operations. Generate one with:
+
+```bash
+# macOS / Linux (openssl)
+openssl rand -hex 32
+
+# or with Node
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# or with Python
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Paste the result into your `.env`:
+
+```bash
+AUTH_TOKEN=8a3f1c9e...your-random-hex-string...
+```
+
 ## Themes
 
 Themes are JSON files in the `themes/` directory. Create one:
